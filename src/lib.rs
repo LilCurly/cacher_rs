@@ -26,12 +26,10 @@ impl<'a, C, V, R> Cacher<'a, C, V, R>
     }
 
     pub fn get_value(&mut self, val: &'a [V]) -> R {
-        if self.value.contains_key(val) {
-            return self.value.get(val).unwrap().clone();
-        } else {
+        if !self.value.contains_key(val) {
             self.value.insert(val, (self.calc)(val));
-            return self.value.get(val).unwrap().clone();
         }
+        self.value.get(val).unwrap().clone()
     }
 }
 
