@@ -1,23 +1,23 @@
 
 
-pub struct Cacher<C>
-    where C: Fn(u32) -> u32
+pub struct Cacher<C, V>
+    where C: Fn(V) -> V, V: Copy
 {
-    value: Option<u32>,
+    value: Option<V>,
     calc: C
 }
 
-impl<C> Cacher<C>
-    where C: Fn(u32) -> u32
+impl<C, V> Cacher<C, V>
+    where C: Fn(V) -> V, V: Copy
 {
-    pub fn new(calc: C) -> Cacher<C> {
+    pub fn new(calc: C) -> Cacher<C, V> {
         Cacher {
             value: None,
             calc,
         }
     }
 
-    pub fn get_value(&mut self, val: u32) -> u32 {
+    pub fn get_value(&mut self, val: V) -> V {
         match self.value {
             Some(val) => val,
             None => {
@@ -33,8 +33,16 @@ mod tests {
     use super::*;
 
     #[test]
-    fn it_works() {
+    fn works_with_integers() {
         let mut c = Cacher::new(|val| val);
         assert_eq!(c.get_value(1), 1);
+        assert_eq!(c.get_value(5), 1);
+    }
+
+    #[test]
+    fn works_with_str() {
+        let mut c = Cacher::new(|val| val);
+        assert_eq!(c.get_value("test"), "test");
+        assert_eq!(c.get_value("fsfsf"), "test");
     }
 }
