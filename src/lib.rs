@@ -1,7 +1,14 @@
+/**
+ * 
+ * Cacher by Roman Muzikantov
+ * Last update: 06/12/2019
+ * 
+ * */
+
 use std::marker::PhantomData;
 
 pub struct Cacher<C, V, R>
-    where C: Fn(V) -> R, R: Copy
+    where C: Fn(&[V]) -> R, R: Copy
 {
     value: Option<R>,
     calc: C,
@@ -9,7 +16,7 @@ pub struct Cacher<C, V, R>
 }
 
 impl<C, V, R> Cacher<C, V, R>
-    where C: Fn(V) -> R, R: Copy
+    where C: Fn(&[V]) -> R, R: Copy
 {
     pub fn new(calc: C) -> Cacher<C, V, R> {
         Cacher {
@@ -19,9 +26,9 @@ impl<C, V, R> Cacher<C, V, R>
         }
     }
 
-    pub fn get_value(&mut self, val: V) -> R {
+    pub fn get_value(&mut self, val: &[V]) -> R {
         match self.value {
-            Some(val) => val,
+            Some(result) => result,
             None => {
                 self.value = Some((self.calc)(val));
                 self.value.unwrap()
@@ -36,21 +43,27 @@ mod tests {
 
     #[test]
     fn works_with_integers() {
-        let mut c = Cacher::new(|val| val);
-        assert_eq!(c.get_value(1), 1);
-        assert_eq!(c.get_value(5), 1);
+        let mut c = Cacher::new(|val| val[0]);
+        assert_eq!(c.get_value(&[1]), 1);
+        assert_eq!(c.get_value(&[5]), 1);
     }
 
     #[test]
     fn works_with_str() {
-        let mut c = Cacher::new(|val| val);
-        assert_eq!(c.get_value("test"), "test");
-        assert_eq!(c.get_value("fsfsf"), "test");
+        let mut c = Cacher::new(|val| val[0]);
+        assert_eq!(c.get_value(&["test"]), "test");
+        assert_eq!(c.get_value(&["fsfsf"]), "test");
     }
 
     #[test]
     fn works_with_different_return_types() {
         let mut c = Cacher::new(|val| "test");
-        assert_eq!(c.get_value(1), "test");
+        assert_eq!(c.get_value(&[1]), "test");
+    }
+
+    #[test]
+    fn works_with_bigger_slice() {
+        let mut c = Cacher::new(|val| val[0] + val[1]);
+        assert_eq!(c.get_value(&[1, 2]), 3);
     }
 }
